@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Examinations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Examinations</h2>
+        <p class="text-muted mb-0">Configure examinations, set timelines, and monitor evaluation progress</p>
+    </div>
+    <a href="{{ url_for('admin.create_examination') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Create Examination
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="card p-3 mb-4 shadow-sm border-0">
+    <form method="GET" action="{{ url_for('admin.examinations') }}" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="Search by examination title...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="Draft" {% if status_filter == 'Draft' %}selected{% endif %}>Draft</option>
+                <option value="Slot Creation" {% if status_filter == 'Slot Creation' %}selected{% endif %}>Slot Creation</option>
+                <option value="Booking Open" {% if status_filter == 'Booking Open' %}selected{% endif %}>Booking Open</option>
+                <option value="Closed" {% if status_filter == 'Closed' %}selected{% endif %}>Closed</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+            {% if search_q or status_filter %}
+                <a href="{{ url_for('admin.examinations') }}" class="btn btn-link text-decoration-none">Reset</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Examinations Table -->
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Examination Name</th>
+                    <th>Course</th>
+                    <th>Type</th>
+                    <th>Slot Creation Window</th>
+                    <th>Booking Window</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in examinations %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('admin.examination_detail', exam_id=exam.id) }}" class="fw-bold text-decoration-none text-dark">
+                            {{ exam.examination_name }}
+                        </a>
+                        <div class="small text-muted">{{ exam.duration }} mins &bull; Max Marks: {{ exam.max_marks }}</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ exam.course.course_code }}</span></td>
+                    <td><span class="badge bg-secondary-subtle text-secondary">{{ exam.examination_type }}</span></td>
+                    <td class="small">
+                        {{ exam.slot_creation_start_date }} <br><span class="text-muted">to {{ exam.slot_creation_end_date }}</span>
+                    </td>
+                    <td class="small">
+                        {{ exam.slot_booking_start_date }} <br><span class="text-muted">to {{ exam.slot_booking_end_date }}</span>
+                    </td>
+                    <td>
+                        {% if exam.status == 'Draft' %}
+                            <span class="status-badge badge-draft">Draft</span>
+                        {% elif exam.status == 'Slot Creation' %}
+                            <span class="status-badge badge-slot-creation">Slot Creation</span>
+                        {% elif exam.status == 'Booking Open' %}
+                            <span class="status-badge badge-booking-open">Booking Open</span>
+                        {% elif exam.status == 'Closed' %}
+                            <span class="status-badge badge-closed">Closed</span>
+                        {% else %}
+                            <span class="status-badge badge-completed">Completed</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.examination_detail', exam_id=exam.id) }}" class="btn btn-sm btn-outline-primary" title="Details & Timelines">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{{ url_for('admin.manage_rubrics', exam_id=exam.id) }}" class="btn btn-sm btn-outline-info" title="Manage Rubrics">
+                                <i class="bi bi-card-checklist"></i> Rubrics
+                            </a>
+                            <a href="{{ url_for('admin.edit_examination', exam_id=exam.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.delete_examination', exam_id=exam.id) }}" onsubmit="return confirm('Delete examination and all its slots/rubrics?');" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No examinations found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

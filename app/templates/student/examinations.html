@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Examinations Catalog{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Examinations Directory</h2>
+        <p class="text-muted mb-0">Browse examinations, inspect schedules, and book slots</p>
+    </div>
+</div>
+
+<!-- Search & Filters -->
+<div class="card p-3 mb-4 shadow-sm border-0">
+    <form method="GET" action="{{ url_for('student.examinations') }}" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="Search by exam name or course...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="course_id" class="form-select">
+                <option value="">All Courses</option>
+                {% for c in courses %}
+                <option value="{{ c.id }}" {% if course_filter == c.id %}selected{% endif %}>
+                    {{ c.course_code }} - {{ c.course_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="type" class="form-select">
+                <option value="">All Types</option>
+                {% for t in ['Viva', 'Practical', 'Project Demo', 'Assessment'] %}
+                <option value="{{ t }}" {% if type_filter == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+            {% if search_q or course_filter or type_filter %}
+                <a href="{{ url_for('student.examinations') }}" class="btn btn-link text-decoration-none">Reset</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Examinations Grid -->
+<div class="row g-4">
+    {% for exam in examinations %}
+    {% set is_open = exam.is_slot_booking_open() %}
+    {% set has_booked = exam.id in booked_exam_ids %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 d-flex flex-column">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary fs-6">{{ exam.course.course_code }}</span>
+                    {% if has_booked %}
+                        <span class="badge bg-success-subtle text-success border border-success">
+                            <i class="bi bi-check-circle me-1"></i> Booked
+                        </span>
+                    {% elif is_open %}
+                        <span class="badge bg-success">Booking Open</span>
+                    {% elif exam.status == 'Slot Creation' %}
+                        <span class="badge bg-warning text-dark">Slot Creation</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ exam.status }}</span>
+                    {% endif %}
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1">{{ exam.examination_name }}</h5>
+                <p class="text-muted small mb-3">{{ exam.course.course_name }}</p>
+
+                <div class="small bg-light p-2 rounded mb-3">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Format:</span>
+                        <span class="fw-semibold">{{ exam.examination_type }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Duration:</span>
+                        <span class="fw-semibold">{{ exam.duration }} mins</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted">Maximum Marks:</span>
+                        <span class="fw-semibold">{{ exam.max_marks }} pts</span>
+                    </div>
+                </div>
+
+                <div class="small text-muted mb-3">
+                    <i class="bi bi-clock-history me-1"></i> Booking Deadline: <strong>{{ exam.slot_booking_end_date }}</strong>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white border-0 pt-0 mt-auto">
+                {% if has_booked %}
+                    <a href="{{ url_for('student.bookings') }}" class="btn btn-outline-success w-100">
+                        <i class="bi bi-bookmark-check me-1"></i> View My Booking
+                    </a>
+                {% elif is_open %}
+                    <a href="{{ url_for('student.exam_slots', exam_id=exam.id) }}" class="btn btn-primary w-100">
+                        <i class="bi bi-calendar-check me-1"></i> Choose Slot ({{ exam.slots.count() }})
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('student.exam_slots', exam_id=exam.id) }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-eye me-1"></i> View Slots (Booking Closed)
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card p-5 text-center text-muted">
+            <i class="bi bi-journal-x fs-1 mb-3"></i>
+            <h5>No examinations match your search criteria.</h5>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

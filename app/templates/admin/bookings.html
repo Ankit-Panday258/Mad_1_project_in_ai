@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}All Bookings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Student Bookings</h2>
+        <p class="text-muted mb-0">Monitor all student examination reservations and reschedule when required</p>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card p-3 mb-4 shadow-sm border-0">
+    <form method="GET" action="{{ url_for('admin.bookings') }}" class="row g-2 align-items-center">
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="Booked" {% if status_filter == 'Booked' %}selected{% endif %}>Booked</option>
+                <option value="Rescheduled" {% if status_filter == 'Rescheduled' %}selected{% endif %}>Rescheduled</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+            {% if status_filter %}
+                <a href="{{ url_for('admin.bookings') }}" class="btn btn-link text-decoration-none">Reset</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Bookings Table -->
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Student Details</th>
+                    <th>Examination</th>
+                    <th>Assigned Slot & Examiner</th>
+                    <th>Booking Date</th>
+                    <th>Status</th>
+                    <th>Result</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td>#{{ b.id }}</td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ b.student.full_name }}</div>
+                        <div class="small text-muted">Roll: {{ b.student.student_profile.roll_no if b.student.student_profile else 'N/A' }}</div>
+                        <div class="small text-muted">{{ b.student.email }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ b.slot.examination.examination_name }}</div>
+                        <div class="small text-muted">{{ b.slot.examination.course.course_code }} &bull; {{ b.slot.examination.examination_type }}</div>
+                    </td>
+                    <td>
+                        <div><i class="bi bi-calendar3 me-1 text-muted"></i>{{ b.slot.slot_date }} ({{ b.slot.start_time.strftime('%H:%M') }} - {{ b.slot.end_time.strftime('%H:%M') }})</div>
+                        <div class="small text-primary"><i class="bi bi-person me-1"></i>Examiner: {{ b.slot.examiner.full_name }}</div>
+                    </td>
+                    <td class="small text-muted">{{ b.booking_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <span class="badge {% if b.status == 'Booked' %}bg-success{% elif b.status == 'Rescheduled' %}bg-info{% elif b.status == 'Completed' %}bg-secondary{% else %}bg-danger{% endif %}">
+                            {{ b.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if b.evaluation %}
+                            <span class="badge bg-primary">{{ b.evaluation.total_marks_awarded }} / {{ b.slot.examination.max_marks }}</span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if b.status in ['Booked', 'Rescheduled'] %}
+                            <a href="{{ url_for('admin.reschedule_booking', booking_id=b.id) }}" class="btn btn-sm btn-outline-warning" title="Reschedule to another slot">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reschedule
+                            </a>
+                        {% else %}
+                            <span class="text-muted small">No action</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">No student bookings found matching criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

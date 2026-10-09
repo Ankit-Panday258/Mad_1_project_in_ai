@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluate {{ booking.student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-0">Student Evaluation</h3>
+                    <p class="text-muted mb-0">Grade candidate based on standardized examination rubrics</p>
+                </div>
+                <a href="{{ url_for('examiner.slot_students', slot_id=booking.slot_id) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Roster
+                </a>
+            </div>
+
+            <!-- Student & Exam Details Header -->
+            <div class="bg-light p-3 rounded mb-4">
+                <div class="row g-2 small">
+                    <div class="col-md-6">
+                        <strong>Student Name:</strong> {{ booking.student.full_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Roll Number:</strong> {{ booking.student.student_profile.roll_no if booking.student.student_profile else 'N/A' }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Examination:</strong> {{ exam.examination_name }} ({{ exam.course.course_code }})
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Format & Max Marks:</strong> {{ exam.examination_type }} &bull; Max {{ exam.max_marks }} pts
+                    </div>
+                </div>
+            </div>
+
+            {% if not rubrics %}
+                <div class="alert alert-warning py-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    No rubrics have been configured for this examination by the Administrator. You can still input overall remarks.
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% if rubrics %}
+                    <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-card-checklist me-2"></i>Rubric Criteria Evaluation</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 35%;">Criterion & Guidelines</th>
+                                    <th style="width: 15%;">Max Marks</th>
+                                    <th style="width: 20%;">Awarded Marks</th>
+                                    <th style="width: 30%;">Criterion Feedback</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in rubrics %}
+                                {% set prev_score = scores_dict.get(r.id) %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ r.criterion_name }}</div>
+                                        <div class="text-muted small">{{ r.description or 'Standard criterion assessment.' }}</div>
+                                        <div class="badge bg-secondary-subtle text-secondary small">Weight: {{ r.weightage }}%</div>
+                                    </td>
+                                    <td class="text-center fw-bold">{{ r.max_marks }} pts</td>
+                                    <td>
+                                        <div class="input-group">
+                                            <input type="number" step="0.5" min="0" max="{{ r.max_marks }}" 
+                                                   class="form-control" name="rubric_marks_{{ r.id }}" 
+                                                   value="{{ prev_score.marks_awarded if prev_score else 0 }}" required>
+                                            <span class="input-group-text small">/ {{ r.max_marks }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" name="rubric_remarks_{{ r.id }}" 
+                                               value="{{ prev_score.remarks if prev_score else '' }}" 
+                                               placeholder="Notes for this criterion">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label for="remarks" class="form-label fw-semibold">Overall Qualitative Feedback / Remarks</label>
+                    <textarea class="form-control" id="remarks" name="remarks" rows="4" placeholder="Comprehensive feedback for student strengths, weaknesses, and performance review">{{ evaluation.remarks if evaluation else '' }}</textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('examiner.slot_students', slot_id=booking.slot_id) }}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle me-1"></i> Submit Evaluation & Marks
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

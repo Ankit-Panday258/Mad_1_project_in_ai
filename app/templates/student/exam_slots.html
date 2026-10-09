@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Slots for {{ exam.examination_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('student.examinations') }}">Examinations</a></li>
+                <li class="breadcrumb-item active">{{ exam.examination_name }}</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-0">Examination Slots</h2>
+        <p class="text-muted mb-0">
+            {{ exam.course.course_code }} - {{ exam.course.course_name }} &bull; {{ exam.examination_type }} ({{ exam.duration }} mins)
+        </p>
+    </div>
+    <a href="{{ url_for('student.examinations') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Catalog
+    </a>
+</div>
+
+{% if existing_booking %}
+    <div class="alert alert-info d-flex align-items-center justify-content-between shadow-sm mb-4">
+        <div>
+            <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+            <strong>You have an existing booking for this examination:</strong>
+            Slot on {{ existing_booking.slot.slot_date }} ({{ existing_booking.slot.start_time.strftime('%H:%M') }} - {{ existing_booking.slot.end_time.strftime('%H:%M') }}), Examiner: {{ existing_booking.slot.examiner.full_name }}.
+        </div>
+        <a href="{{ url_for('student.bookings') }}" class="btn btn-outline-primary btn-sm">
+            View in My Bookings
+        </a>
+    </div>
+{% endif %}
+
+{% if not exam.is_slot_booking_open() %}
+    <div class="alert alert-warning shadow-sm mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Slot Booking is currently closed for this examination.</strong>
+        Booking window: {{ exam.slot_booking_start_date }} to {{ exam.slot_booking_end_date }}.
+    </div>
+{% endif %}
+
+<!-- Available Slots Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i> Available Time Slots</h5>
+        <span class="badge bg-secondary">{{ slots|length }} Slots Listed</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Slot ID</th>
+                    <th>Date & Time</th>
+                    <th>Examiner</th>
+                    <th>Capacity & Availability</th>
+                    <th>Mode / Venue</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td>#{{ slot.id }}</td>
+                    <td>
+                        <div class="fw-bold">{{ slot.slot_date }}</div>
+                        <div class="small text-muted">{{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ slot.examiner.full_name }}</div>
+                        <div class="small text-muted">{{ slot.examiner.examiner_profile.department if slot.examiner.examiner_profile else 'Examiner' }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold {% if slot.available_seats > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ slot.available_seats }} seats left
+                        </div>
+                        <div class="small text-muted">Total capacity: {{ slot.max_capacity }}</div>
+                    </td>
+                    <td class="small text-muted">{{ slot.location_or_link or 'Online Link' }}</td>
+                    <td>
+                        <span class="status-badge {% if slot.status == 'Available' and slot.available_seats > 0 %}badge-available{% elif slot.status == 'Full' or slot.available_seats == 0 %}badge-full{% else %}badge-cancelled{% endif %}">
+                            {{ 'Full' if slot.available_seats == 0 else slot.status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        {% if existing_booking %}
+                            {% if existing_booking.slot_id == slot.id %}
+                                <span class="badge bg-success py-2 px-3"><i class="bi bi-check-circle me-1"></i> Your Slot</span>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" disabled>Already Booked</button>
+                            {% endif %}
+                        {% elif exam.is_slot_booking_open() and slot.status == 'Available' and slot.available_seats > 0 %}
+                            <form method="POST" action="{{ url_for('student.book_slot', slot_id=slot.id) }}" onsubmit="return confirm('Confirm booking this slot on {{ slot.slot_date }} at {{ slot.start_time.strftime('%H:%M') }}?');">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check2-circle me-1"></i> Book Slot
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>Unavailable</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No examination slots created yet by examiners. Please check back soon.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

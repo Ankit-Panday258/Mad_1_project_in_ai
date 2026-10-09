@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Examination Scorecard - {{ booking.slot.examination.examination_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('student.bookings') }}">My Bookings</a></li>
+                <li class="breadcrumb-item active">Scorecard</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-0">Examination Scorecard</h2>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="bi bi-printer me-1"></i> Print / Download Scorecard
+        </button>
+        <a href="{{ url_for('student.bookings') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to History
+        </a>
+    </div>
+</div>
+
+<!-- Scorecard Document Sheet -->
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card p-5 border-0 shadow bg-white">
+            <!-- Institutional Header -->
+            <div class="scorecard-header text-center border-bottom pb-4 mb-4">
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                    <i class="bi bi-mortarboard-fill text-primary fs-1 me-3"></i>
+                    <div class="text-start">
+                        <h3 class="fw-bold mb-0 text-dark">EXAMINATION MANAGEMENT PORTAL</h3>
+                        <p class="text-muted small mb-0">Office of Academic Controller &bull; Official Student Performance Transcript</p>
+                    </div>
+                </div>
+                <div class="badge bg-success-subtle text-success border border-success fs-6 mt-2 px-3 py-1">
+                    OFFICIAL PERFORMANCE SCORECARD
+                </div>
+            </div>
+
+            <!-- Student & Exam Metadata -->
+            <div class="row g-3 mb-4 bg-light p-4 rounded">
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Student Name:</span>
+                    <div class="fs-5 fw-bold text-dark">{{ booking.student.full_name }}</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Roll Number / Student ID:</span>
+                    <div class="fs-5 fw-bold text-dark">{{ booking.student.student_profile.roll_no if booking.student.student_profile else 'N/A' }}</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Course:</span>
+                    <div class="fw-semibold">{{ booking.slot.examination.course.course_code }} - {{ booking.slot.examination.course.course_name }}</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Department:</span>
+                    <div class="fw-semibold">{{ booking.student.student_profile.department if booking.student.student_profile else 'Computer Science' }}</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Examination:</span>
+                    <div class="fw-semibold">{{ booking.slot.examination.examination_name }} ({{ booking.slot.examination.examination_type }})</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Evaluator / Examiner:</span>
+                    <div class="fw-semibold">{{ evaluation.examiner.full_name }}</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Exam Slot Date:</span>
+                    <div class="fw-semibold">{{ booking.slot.slot_date }} ({{ booking.slot.start_time.strftime('%H:%M') }} - {{ booking.slot.end_time.strftime('%H:%M') }})</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold">Date of Evaluation:</span>
+                    <div class="fw-semibold">{{ evaluation.evaluated_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+            </div>
+
+            <!-- Rubrics Breakdown Table -->
+            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-card-checklist me-2"></i> Rubric Evaluation Criteria Breakdown</h5>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Evaluation Criterion</th>
+                            <th class="text-center">Max Marks</th>
+                            <th class="text-center">Marks Awarded</th>
+                            <th>Examiner Criterion Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in scores %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ s.rubric.criterion_name }}</div>
+                                <div class="small text-muted">{{ s.rubric.description or '' }}</div>
+                            </td>
+                            <td class="text-center fw-semibold">{{ s.rubric.max_marks }}</td>
+                            <td class="text-center fw-bold text-primary fs-6">{{ s.marks_awarded }}</td>
+                            <td class="small text-muted">{{ s.remarks or 'Satisfactory demonstration' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">No specific rubric criteria configured. Direct grade recorded.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th class="text-uppercase fw-bold">Total Score</th>
+                            <th class="text-center fw-bold">{{ booking.slot.examination.max_marks }}</th>
+                            <th class="text-center fw-bold text-success fs-5">{{ evaluation.total_marks_awarded }}</th>
+                            <th>
+                                {% set pct = (evaluation.total_marks_awarded / booking.slot.examination.max_marks * 100) if booking.slot.examination.max_marks > 0 else 0 %}
+                                <span class="badge bg-success fs-6">Percentage: {{ "%.1f"|format(pct) }}%</span>
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Qualitative Remarks -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-2 text-primary"><i class="bi bi-chat-left-quote me-2"></i> Qualitative Feedback & Remarks</h5>
+                <div class="p-3 bg-light rounded border">
+                    <p class="mb-0 fst-italic text-dark">{{ evaluation.remarks or 'Candidate demonstrated competent grasp of the examination topics.' }}</p>
+                </div>
+            </div>
+
+            <!-- Institutional Verification Sign-off -->
+            <div class="row mt-5 pt-4 border-top">
+                <div class="col-6 text-center">
+                    <p class="fw-bold text-dark mb-0">{{ evaluation.examiner.full_name }}</p>
+                    <p class="text-muted small">Signature of Faculty Examiner</p>
+                </div>
+                <div class="col-6 text-center">
+                    <p class="fw-bold text-dark mb-0">Controller of Examinations</p>
+                    <p class="text-muted small">Academic Examination Board</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

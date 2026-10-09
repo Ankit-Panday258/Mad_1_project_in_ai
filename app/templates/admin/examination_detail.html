@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam.examination_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.examinations') }}">Examinations</a></li>
+                <li class="breadcrumb-item active">{{ exam.examination_name }}</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-0">{{ exam.examination_name }}</h2>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.manage_rubrics', exam_id=exam.id) }}" class="btn btn-outline-info">
+            <i class="bi bi-card-checklist me-1"></i> Manage Rubrics ({{ rubrics|length }})
+        </a>
+        <a href="{{ url_for('admin.edit_examination', exam_id=exam.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Edit Details
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Examination Overview Card -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100 p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i> Examination Specifications</h5>
+            <div class="row g-3">
+                <div class="col-6">
+                    <span class="text-muted small">Course:</span>
+                    <div class="fw-semibold">{{ exam.course.course_code }} - {{ exam.course.course_name }}</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small">Format:</span>
+                    <div class="fw-semibold"><span class="badge bg-secondary">{{ exam.examination_type }}</span></div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small">Duration:</span>
+                    <div class="fw-semibold">{{ exam.duration }} Minutes</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small">Maximum Marks:</span>
+                    <div class="fw-semibold">{{ exam.max_marks }} pts</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small">Total Slots Created:</span>
+                    <div class="fw-semibold">{{ slots|length }} Slots</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small">Total Bookings:</span>
+                    <div class="fw-semibold">{{ bookings_count }} Students</div>
+                </div>
+            </div>
+
+            <hr class="my-3">
+
+            <h6 class="fw-bold mb-2">Timeline Schedule:</h6>
+            <div class="small">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted"><i class="bi bi-person-workspace me-1"></i> Examiner Slot Creation:</span>
+                    <span class="fw-semibold">{{ exam.slot_creation_start_date }} to {{ exam.slot_creation_end_date }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span class="text-muted"><i class="bi bi-person-fill-check me-1"></i> Student Slot Booking:</span>
+                    <span class="fw-semibold">{{ exam.slot_booking_start_date }} to {{ exam.slot_booking_end_date }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrative Phase Controls -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100 p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-toggle2-on me-2 text-warning"></i> Examination Phase Control</h5>
+            <p class="text-muted small mb-3">
+                Current Status: 
+                <span class="status-badge 
+                    {% if exam.status == 'Draft' %}badge-draft
+                    {% elif exam.status == 'Slot Creation' %}badge-slot-creation
+                    {% elif exam.status == 'Booking Open' %}badge-booking-open
+                    {% elif exam.status == 'Closed' %}badge-closed
+                    {% else %}badge-completed{% endif %} fs-6">
+                    {{ exam.status }}
+                </span>
+            </p>
+
+            <div class="bg-light p-3 rounded mb-3">
+                <h6 class="fw-bold small text-secondary text-uppercase mb-2">Phase Override Actions</h6>
+                <div class="d-flex flex-column gap-2">
+                    <!-- Open Slot Creation -->
+                    <form method="POST" action="{{ url_for('admin.set_examination_status', exam_id=exam.id) }}" class="d-inline">
+                        <input type="hidden" name="status" value="Slot Creation">
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 text-start d-flex justify-content-between align-items-center {% if exam.status == 'Slot Creation' %}active{% endif %}">
+                            <span><i class="bi bi-calendar-plus me-2"></i> Open Examiner Slot Creation</span>
+                            {% if exam.status == 'Slot Creation' %}<span class="badge bg-primary">Active</span>{% endif %}
+                        </button>
+                    </form>
+
+                    <!-- Open Slot Booking -->
+                    <form method="POST" action="{{ url_for('admin.set_examination_status', exam_id=exam.id) }}" class="d-inline">
+                        <input type="hidden" name="status" value="Booking Open">
+                        <button type="submit" class="btn btn-outline-success btn-sm w-100 text-start d-flex justify-content-between align-items-center {% if exam.status == 'Booking Open' %}active{% endif %}">
+                            <span><i class="bi bi-door-open me-2"></i> Open Student Slot Booking</span>
+                            {% if exam.status == 'Booking Open' %}<span class="badge bg-success">Active</span>{% endif %}
+                        </button>
+                    </form>
+
+                    <!-- Close Examination -->
+                    <form method="POST" action="{{ url_for('admin.set_examination_status', exam_id=exam.id) }}" class="d-inline">
+                        <input type="hidden" name="status" value="Closed">
+                        <button type="submit" class="btn btn-outline-warning btn-sm w-100 text-start d-flex justify-content-between align-items-center {% if exam.status == 'Closed' %}active{% endif %}">
+                            <span><i class="bi bi-lock me-2"></i> Close Slot Creation & Booking</span>
+                            {% if exam.status == 'Closed' %}<span class="badge bg-warning text-dark">Active</span>{% endif %}
+                        </button>
+                    </form>
+
+                    <!-- Mark Completed -->
+                    <form method="POST" action="{{ url_for('admin.set_examination_status', exam_id=exam.id) }}" class="d-inline">
+                        <input type="hidden" name="status" value="Completed">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100 text-start d-flex justify-content-between align-items-center {% if exam.status == 'Completed' %}active{% endif %}">
+                            <span><i class="bi bi-check2-all me-2"></i> Mark Examination Completed</span>
+                            {% if exam.status == 'Completed' %}<span class="badge bg-secondary">Active</span>{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <p class="small text-muted mb-0">
+                <i class="bi bi-shield-check me-1"></i> Changing the phase controls whether examiners can submit time slots or students can reserve seats.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Examination Slots Table -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2 text-primary"></i> Examination Slots</h5>
+        <span class="badge bg-secondary">{{ slots|length }} Slots Configured</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Slot ID</th>
+                    <th>Examiner</th>
+                    <th>Date & Time</th>
+                    <th>Capacity</th>
+                    <th>Available Seats</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td>#{{ slot.id }}</td>
+                    <td class="fw-semibold">
+                        {{ slot.examiner.full_name }}
+                        <div class="small text-muted">{{ slot.examiner.examiner_profile.department if slot.examiner.examiner_profile else '' }}</div>
+                    </td>
+                    <td>
+                        {{ slot.slot_date }}
+                        <div class="small text-muted">{{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</div>
+                    </td>
+                    <td>{{ slot.max_capacity }}</td>
+                    <td>
+                        <span class="badge {% if slot.available_seats > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ slot.available_seats }} / {{ slot.max_capacity }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge {% if slot.status == 'Available' %}badge-available{% elif slot.status == 'Full' %}badge-full{% else %}badge-cancelled{% endif %}">
+                            {{ slot.status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('admin.reassign_slot_examiner', slot_id=slot.id) }}" class="btn btn-sm btn-outline-warning" title="Reassign Examiner">
+                            <i class="bi bi-person-gear"></i> Change Examiner
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No examination slots created yet. Faculty examiners can create slots during the Slot Creation period.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

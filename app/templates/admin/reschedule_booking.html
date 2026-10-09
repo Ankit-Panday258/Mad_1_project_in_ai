@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Reschedule Booking #{{ booking.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0">Reschedule Student Booking</h3>
+                <a href="{{ url_for('admin.bookings') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Bookings
+                </a>
+            </div>
+
+            <!-- Booking Info Card -->
+            <div class="bg-light p-3 rounded mb-4">
+                <div class="row g-2 small">
+                    <div class="col-sm-6">
+                        <strong>Student:</strong> {{ booking.student.full_name }} ({{ booking.student.student_profile.roll_no if booking.student.student_profile else 'N/A' }})
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Examination:</strong> {{ current_slot.examination.examination_name }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Current Slot:</strong> {{ current_slot.slot_date }} ({{ current_slot.start_time.strftime('%H:%M') }} - {{ current_slot.end_time.strftime('%H:%M') }})
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Current Examiner:</strong> {{ current_slot.examiner.full_name }}
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST">
+                <h5 class="fw-bold mb-3"><i class="bi bi-calendar-event me-2 text-primary"></i> Select Alternative Slot</h5>
+
+                {% if available_slots %}
+                    <div class="list-group mb-4">
+                        {% for s in available_slots %}
+                            <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                                <div class="form-check">
+                                    <input class="form-check-input me-2" type="radio" name="new_slot_id" value="{{ s.id }}" id="slot_{{ s.id }}" required>
+                                    <label class="form-check-label fw-semibold" for="slot_{{ s.id }}">
+                                        {{ s.slot_date }} &bull; {{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }}
+                                        <div class="small text-muted fw-normal">
+                                            Examiner: {{ s.examiner.full_name }} | Location: {{ s.location_or_link or 'Online' }}
+                                        </div>
+                                    </label>
+                                </div>
+                                <span class="badge bg-success-subtle text-success border border-success">
+                                    {{ s.available_seats }} Seats Available
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('admin.bookings') }}" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-arrow-repeat me-1"></i> Confirm Rescheduling
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning py-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        No alternative available slots found for this examination. Examiners must create another slot first.
+                    </div>
+                    <a href="{{ url_for('admin.bookings') }}" class="btn btn-secondary">Return to Bookings</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

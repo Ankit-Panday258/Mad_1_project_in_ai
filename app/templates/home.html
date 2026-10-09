@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to Examination Management Portal{% endblock %}
+
+{% block content %}
+<div class="py-5">
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-7">
+            <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill fw-semibold mb-3">
+                <i class="bi bi-shield-check me-1"></i> Academic Examination Management Platform
+            </span>
+            <h1 class="display-4 fw-bold text-dark lh-tight mb-3">
+                Streamline Academic Examinations, Slot Bookings & Evaluations
+            </h1>
+            <p class="lead text-muted mb-4">
+                A role-based portal for Educational Institutions to schedule courses, automate student slot reservations, coordinate faculty examiners, and record rubric-based grading with zero friction.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Portal
+                </a>
+                <a href="{{ url_for('auth.register_student') }}" class="btn btn-outline-success btn-lg px-4">
+                    <i class="bi bi-person-fill me-1"></i> Student Register
+                </a>
+                <a href="{{ url_for('auth.register_examiner') }}" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-person-badge-fill me-1"></i> Examiner Register
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 mt-4 mt-lg-0 text-center">
+            <div class="card p-4 shadow-lg border-0 bg-primary text-white text-start">
+                <h4 class="fw-bold mb-3"><i class="bi bi-key-fill me-2"></i> Demo Credentials</h4>
+                <p class="small text-white-50">Pre-seeded accounts ready for immediate demonstration:</p>
+                <div class="bg-dark p-3 rounded mb-2 font-monospace small">
+                    <div class="text-warning fw-bold">1. Administrator (Superuser):</div>
+                    <div>Username: <code>admin</code></div>
+                    <div>Password: <code>admin123</code></div>
+                </div>
+                <div class="bg-dark p-3 rounded mb-2 font-monospace small">
+                    <div class="text-info fw-bold">2. Approved Examiner:</div>
+                    <div>Username: <code>examiner1</code></div>
+                    <div>Password: <code>examiner123</code></div>
+                </div>
+                <div class="bg-dark p-3 rounded font-monospace small">
+                    <div class="text-success fw-bold">3. Registered Student:</div>
+                    <div>Username: <code>student1</code></div>
+                    <div>Password: <code>student123</code></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Pillars -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0 shadow-sm">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-gear-fill fs-4"></i>
+                </div>
+                <h5 class="fw-bold">Administrator Control</h5>
+                <p class="text-muted small">
+                    Manage academic courses, define examination types (Viva, Practical, Project Demo), configure slot creation & booking timelines, approve faculty examiners, and reschedule bookings.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0 shadow-sm">
+                <div class="d-inline-flex align-items-center justify-content-center bg-info text-white rounded-circle mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-person-video3 fs-4"></i>
+                </div>
+                <h5 class="fw-bold">Faculty Examiners</h5>
+                <p class="text-muted small">
+                    Create exam slots within sanctioned periods, inspect enrolled student rosters, grade students using criterion-based rubrics, and deliver transparent feedback and marks.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0 shadow-sm">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-calendar2-check fs-4"></i>
+                </div>
+                <h5 class="fw-bold">Students</h5>
+                <p class="text-muted small">
+                    Explore examination schedules, reserve available slots in real-time, avoid scheduling conflicts, track booking statuses, and download printable official scorecards.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

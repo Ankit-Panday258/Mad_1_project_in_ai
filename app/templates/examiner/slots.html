@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}My Examination Slots{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">My Created Slots</h2>
+        <p class="text-muted mb-0">Manage your examination availability and access student rosters</p>
+    </div>
+    <a href="{{ url_for('examiner.create_slot') }}" class="btn btn-primary">
+        <i class="bi bi-calendar-plus me-1"></i> Create Slot
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Slot ID</th>
+                    <th>Examination</th>
+                    <th>Date & Time</th>
+                    <th>Capacity & Bookings</th>
+                    <th>Status</th>
+                    <th>Location / Mode</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td>#{{ slot.id }}</td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ slot.examination.examination_name }}</div>
+                        <div class="small text-muted">{{ slot.examination.course.course_code }} &bull; {{ slot.examination.examination_type }}</div>
+                    </td>
+                    <td>
+                        <div><i class="bi bi-calendar3 me-1 text-muted"></i>{{ slot.slot_date }}</div>
+                        <div class="small text-muted"><i class="bi bi-clock me-1"></i>{{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</div>
+                    </td>
+                    <td>
+                        {% set booked = slot.max_capacity - slot.available_seats %}
+                        <div class="fw-semibold">{{ booked }} booked / {{ slot.max_capacity }} max</div>
+                        <div class="small text-muted">Remaining: {{ slot.available_seats }} seats</div>
+                    </td>
+                    <td>
+                        <span class="status-badge {% if slot.status == 'Available' %}badge-available{% elif slot.status == 'Full' %}badge-full{% else %}badge-cancelled{% endif %}">
+                            {{ slot.status }}
+                        </span>
+                    </td>
+                    <td class="small text-muted">{{ slot.location_or_link or 'N/A' }}</td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            <a href="{{ url_for('examiner.slot_students', slot_id=slot.id) }}" class="btn btn-sm btn-outline-primary" title="View Students and Evaluate">
+                                <i class="bi bi-people me-1"></i> Students ({{ booked }})
+                            </a>
+
+                            {% if slot.is_modifiable %}
+                                <a href="{{ url_for('examiner.edit_slot', slot_id=slot.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit slot details">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('examiner.delete_slot', slot_id=slot.id) }}" onsubmit="return confirm('Are you sure you want to delete this slot?');" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove slot">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" disabled title="Locked: Student bookings exist">
+                                    <i class="bi bi-lock-fill"></i> Locked
+                                </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">You haven't created any examination slots yet. Click "Create Slot" to add availability.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

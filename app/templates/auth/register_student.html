@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Student Registration{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle mb-2" style="width: 56px; height: 56px;">
+                    <i class="bi bi-mortarboard fs-3"></i>
+                </div>
+                <h3 class="fw-bold">Student Registration</h3>
+                <p class="text-muted small">Create your student account to view exams and book slots</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.register_student') }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="e.g. Rahul Sharma">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="roll_no" class="form-label fw-semibold">Roll Number / Student ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="roll_no" name="roll_no" required placeholder="e.g. CS2026-042">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="username" class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username" required placeholder="e.g. rahul26">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="e.g. rahul@university.edu">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="department" class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="department" name="department" required placeholder="e.g. Computer Science">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="contact_details" class="form-label fw-semibold">Contact / Phone</label>
+                        <input type="text" class="form-control" id="contact_details" name="contact_details" placeholder="e.g. +91 9876543210">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" required minlength="6" placeholder="Min 6 characters">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Repeat password">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
+                        <i class="bi bi-check-circle me-1"></i> Complete Registration
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3 small">
+                Already registered? <a href="{{ url_for('auth.login') }}" class="fw-semibold">Sign in here</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

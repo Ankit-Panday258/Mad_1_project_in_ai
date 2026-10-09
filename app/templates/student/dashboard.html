@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Student Portal</h2>
+        <p class="text-muted mb-0">Welcome, {{ current_user.full_name }} (Roll No: {{ current_user.student_profile.roll_no if current_user.student_profile else 'N/A' }})</p>
+    </div>
+    <div>
+        <a href="{{ url_for('student.examinations') }}" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Browse & Book Exams
+        </a>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Open Examinations</div>
+            <div class="fs-2 fw-bold text-primary">{{ stats.open_exams_count }}</div>
+            <a href="{{ url_for('student.examinations') }}" class="small text-decoration-none text-primary mt-auto">Browse exams <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Available Slots</div>
+            <div class="fs-2 fw-bold text-success">{{ stats.available_slots_count }}</div>
+            <span class="small text-muted mt-auto">Open for booking</span>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Upcoming Bookings</div>
+            <div class="fs-2 fw-bold text-warning">{{ stats.my_active_bookings }}</div>
+            <a href="{{ url_for('student.bookings') }}" class="small text-decoration-none text-warning mt-auto">View schedule <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Published Results</div>
+            <div class="fs-2 fw-bold text-info">{{ stats.results_published }}</div>
+            <a href="{{ url_for('student.bookings') }}" class="small text-decoration-none text-info mt-auto">View scorecards <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Upcoming Confirmed Bookings -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-calendar2-check me-2 text-primary"></i> My Booked Examination Slots</h5>
+                <a href="{{ url_for('student.bookings') }}" class="btn btn-outline-secondary btn-sm">Full History</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Date & Time</th>
+                            <th>Examiner</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in active_bookings %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ b.slot.examination.examination_name }}</div>
+                                <div class="small text-muted">{{ b.slot.examination.course.course_code }} &bull; {{ b.slot.examination.examination_type }}</div>
+                            </td>
+                            <td>
+                                <div><i class="bi bi-calendar3 me-1 text-muted"></i>{{ b.slot.slot_date }}</div>
+                                <div class="small text-muted"><i class="bi bi-clock me-1"></i>{{ b.slot.start_time.strftime('%H:%M') }} - {{ b.slot.end_time.strftime('%H:%M') }}</div>
+                            </td>
+                            <td class="small">{{ b.slot.examiner.full_name }}</td>
+                            <td>
+                                <span class="badge {% if b.status == 'Booked' %}bg-success{% elif b.status == 'Rescheduled' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ b.status }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('student.bookings') }}" class="btn btn-sm btn-outline-primary">Manage</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                You do not have any active bookings right now.
+                                <div class="mt-2">
+                                    <a href="{{ url_for('student.examinations') }}" class="btn btn-sm btn-primary">Find Examinations</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Examinations Now Open for Booking -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-door-open me-2 text-success"></i> Open for Booking</h5>
+                <a href="{{ url_for('student.examinations') }}" class="btn btn-outline-secondary btn-sm">Browse All</a>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for exam in open_exams %}
+                <div class="list-group-item p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ exam.examination_name }}</h6>
+                            <span class="badge bg-light text-dark border">{{ exam.course.course_code }}</span>
+                            <span class="badge bg-secondary-subtle text-secondary">{{ exam.examination_type }}</span>
+                        </div>
+                        <span class="badge bg-success">Booking Open</span>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        Booking Deadline: {{ exam.slot_booking_end_date }}
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('student.exam_slots', exam_id=exam.id) }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-calendar-plus me-1"></i> View Available Slots
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">No examinations currently open for booking. Check back during scheduled booking windows.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

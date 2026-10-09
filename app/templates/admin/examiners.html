@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Examiners{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Examiners</h2>
+        <p class="text-muted mb-0">Review registration requests, approve new examiners, and manage faculty status</p>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card p-3 mb-4 shadow-sm border-0">
+    <form method="GET" action="{{ url_for('admin.examiners') }}" class="row g-2 align-items-center">
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Approval</option>
+                <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved (Active)</option>
+                <option value="deactivated" {% if status_filter == 'deactivated' %}selected{% endif %}>Deactivated</option>
+                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+            {% if status_filter %}
+                <a href="{{ url_for('admin.examiners') }}" class="btn btn-link text-decoration-none">Reset</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Examiners Table -->
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Examiner ID</th>
+                    <th>Name & Username</th>
+                    <th>Email & Contact</th>
+                    <th>Department & Designation</th>
+                    <th>Status</th>
+                    <th class="text-end">Administrative Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for examiner in examiners %}
+                {% set profile = examiner.examiner_profile %}
+                <tr>
+                    <td>#{{ examiner.id }}</td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ examiner.full_name }}</div>
+                        <div class="text-muted small">@{{ examiner.username }}</div>
+                    </td>
+                    <td>
+                        <div><i class="bi bi-envelope me-1 text-muted"></i>{{ examiner.email }}</div>
+                        <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ profile.contact_details or 'N/A' }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ profile.department if profile else 'General' }}</div>
+                        <div class="text-muted small">{{ profile.designation if profile else 'Examiner' }}</div>
+                    </td>
+                    <td>
+                        {% if profile.status == 'approved' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                        {% elif profile.status == 'pending' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                        {% elif profile.status == 'deactivated' %}
+                            <span class="badge bg-secondary"><i class="bi bi-slash-circle me-1"></i>Deactivated</span>
+                        {% else %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if profile.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('admin.examiner_action', user_id=examiner.id) }}" class="d-inline">
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-lg"></i> Approve
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.examiner_action', user_id=examiner.id) }}" class="d-inline">
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-lg"></i> Reject
+                                </button>
+                            </form>
+                        {% elif profile.status == 'approved' %}
+                            <form method="POST" action="{{ url_for('admin.examiner_action', user_id=examiner.id) }}" class="d-inline">
+                                <input type="hidden" name="action" value="deactivate">
+                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate account">
+                                    <i class="bi bi-pause-circle"></i> Deactivate
+                                </button>
+                            </form>
+                        {% elif profile.status == 'deactivated' %}
+                            <form method="POST" action="{{ url_for('admin.examiner_action', user_id=examiner.id) }}" class="d-inline">
+                                <input type="hidden" name="action" value="activate">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivate account">
+                                    <i class="bi bi-play-circle"></i> Activate
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">No examiners found matching the filter.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

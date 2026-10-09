@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-2" style="width: 56px; height: 56px;">
+                    <i class="bi bi-box-arrow-in-right fs-3"></i>
+                </div>
+                <h3 class="fw-bold">Sign In</h3>
+                <p class="text-muted small">Access your Examination Management Portal account</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="mb-3">
+                    <label for="identifier" class="form-label fw-semibold">Username or Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control" id="identifier" name="identifier" required placeholder="e.g. admin or student1">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                </button>
+            </form>
+
+            <hr class="my-4">
+
+            <div class="text-center small">
+                <p class="mb-1 text-muted">Don't have an account?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('auth.register_student') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-plus me-1"></i> Student Register
+                    </a>
+                    <a href="{{ url_for('auth.register_examiner') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-person-badge me-1"></i> Examiner Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Examiner Registration{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-secondary text-white rounded-circle mb-2" style="width: 56px; height: 56px;">
+                    <i class="bi bi-person-badge fs-3"></i>
+                </div>
+                <h3 class="fw-bold">Examiner Registration</h3>
+                <p class="text-muted small">Register as an examiner. Requires Administrator approval before account activation.</p>
+            </div>
+
+            <div class="alert alert-info py-2 small">
+                <i class="bi bi-info-circle-fill me-1"></i> Notice: To prevent unauthorized evaluations, examiner accounts remain pending until approved by the Portal Administrator.
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.register_examiner') }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="e.g. Dr. Ananya Sen">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="username" class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username" required placeholder="e.g. ananya_prof">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="e.g. ananya@faculty.edu">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="department" class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="department" name="department" required placeholder="e.g. Computer Science & Engineering">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="designation" class="form-label fw-semibold">Designation</label>
+                        <input type="text" class="form-control" id="designation" name="designation" placeholder="e.g. Associate Professor">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="contact_details" class="form-label fw-semibold">Contact / Extension</label>
+                        <input type="text" class="form-control" id="contact_details" name="contact_details" placeholder="e.g. +91 9123456789">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" required minlength="6" placeholder="Min 6 characters">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Repeat password">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                        <i class="bi bi-send me-1"></i> Submit Registration for Approval
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3 small">
+                Already approved? <a href="{{ url_for('auth.login') }}" class="fw-semibold">Sign in here</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

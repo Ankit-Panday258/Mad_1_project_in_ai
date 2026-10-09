@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}My Examination Bookings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">My Bookings & Examination History</h2>
+        <p class="text-muted mb-0">Track scheduled appointments, cancel before deadlines, and view evaluation scorecards</p>
+    </div>
+    <a href="{{ url_for('student.examinations') }}" class="btn btn-primary">
+        <i class="bi bi-search me-1"></i> Book Another Exam
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Examination</th>
+                    <th>Course</th>
+                    <th>Slot Date & Time</th>
+                    <th>Examiner</th>
+                    <th>Status</th>
+                    <th>Marks / Evaluation</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                {% set exam = b.slot.examination %}
+                <tr>
+                    <td>#{{ b.id }}</td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ exam.examination_name }}</div>
+                        <div class="small text-muted">{{ exam.examination_type }} &bull; {{ exam.duration }} mins</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ exam.course.course_code }}</span></td>
+                    <td>
+                        <div><i class="bi bi-calendar3 me-1 text-muted"></i>{{ b.slot.slot_date }}</div>
+                        <div class="small text-muted"><i class="bi bi-clock me-1"></i>{{ b.slot.start_time.strftime('%H:%M') }} - {{ b.slot.end_time.strftime('%H:%M') }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ b.slot.examiner.full_name }}</div>
+                        <div class="small text-muted">{{ b.slot.location_or_link or 'Online' }}</div>
+                    </td>
+                    <td>
+                        <span class="badge {% if b.status == 'Booked' %}bg-success{% elif b.status == 'Rescheduled' %}bg-info{% elif b.status == 'Completed' %}bg-secondary{% else %}bg-danger{% endif %}">
+                            {{ b.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if b.evaluation %}
+                            <div class="fw-bold text-success">{{ b.evaluation.total_marks_awarded }} / {{ exam.max_marks }} pts</div>
+                            <div class="small text-muted"><i class="bi bi-check2-circle text-success me-1"></i>Evaluated</div>
+                        {% else %}
+                            <span class="badge bg-light text-muted border">Pending Evaluation</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            {% if b.evaluation %}
+                                <a href="{{ url_for('student.scorecard', booking_id=b.id) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-award me-1"></i> View Scorecard
+                                </a>
+                            {% endif %}
+
+                            {% if b.status in ['Booked', 'Rescheduled'] and today <= exam.slot_booking_end_date %}
+                                <form method="POST" action="{{ url_for('student.cancel_booking', booking_id=b.id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel booking before deadline ({{ exam.slot_booking_end_date }})">
+                                        <i class="bi bi-x-circle me-1"></i> Cancel
+                                    </button>
+                                </form>
+                            {% elif b.status in ['Booked', 'Rescheduled'] and today > exam.slot_booking_end_date %}
+                                <span class="badge bg-light text-muted border" title="Cancellation deadline has passed">Locked</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">You have no booking records yet. Visit "Browse Exams" to book your slots.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
